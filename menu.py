@@ -1,5 +1,8 @@
 
 import json, os
+from colorama import Fore, Style, init
+
+init(autoreset=True)
 
 # ENV Config files functions
 
@@ -224,8 +227,9 @@ def show_menu():
                 current_value = read_json_value(file, key)
             else:
                 current_value = ""
-            comparison = "("+str(key)+'=\033[93m'+ str(current_value)+"\033[0m)" if key or current_value else ""
+            comparison = "("+str(key)+'='+Fore.YELLOW+ str(current_value)+Style.RESET_ALL+")" if key or current_value else ""
             print("{} {} {}".format(str(option_num).ljust(2), str(label).ljust(40), comparison))
+
 
         try:
             choice = str(input("Pick a menu item (0-{}): ".format(len(OPTIONS)-1)))

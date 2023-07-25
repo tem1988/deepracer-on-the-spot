@@ -13,6 +13,8 @@ shift
 
 instanceTypeConfig=''
 
+
+
 if [[ -n "$DEEPRACER_INSTANCE_TYPE" ]]; then
     instanceTypeConfig="InstanceType=$DEEPRACER_INSTANCE_TYPE"
 fi

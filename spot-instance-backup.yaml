@@ -297,18 +297,25 @@ Resources:
                 cd ~/deepracer-for-cloud
                 while [ true ]
                 do
+                  # This loop collects training data available and publishes it on the nginx docker. accessible through Public_IP:8100/menu.html
+
+                  # Update variable references before every iteration in case of any change on the config files, this is similar to dr-reload
                   source ~/deepracer-for-cloud/bin/activate.sh > /dev/null 2>&1
                   echo "-----------------------------------" > $USAGE_OUTPUT
 
+                  # Get model name being trained
                   cat ~/deepracer-for-cloud/run.env | egrep "^DR_LOCAL_S3_MODEL_PREFIX" >> $USAGE_OUTPUT
 
+                  # get timestamp to know if the data published is current
                   date --utc +%F_%T_UTC >> $USAGE_OUTPUT
 
+                  # known training issues # 1 - GPU ran out of memory
                   outofmemoryerrors=$(docker logs $(dr-find-sagemaker) 2>&1 | grep "ran out of memory"|wc -l)
                   if [[ $outofmemoryerrors -ge 1 ]];then
                     echo "  ########### ERROR ------> GPU RAN OUT OF MEMORY !!!!!!  ###########" >> $USAGE_OUTPUT
                   fi
 
+                  # get Checkpoint status (best checkpoint, last checkpoint, current checkpoint)
                   docker logs $(dr-find-sagemaker) 2>&1 | grep "Best checkpoint" | tail -n 1 >> $USAGE_OUTPUT
                   docker logs $(dr-find-sagemaker) 2>&1 | grep Checkpoint | tail -n 1  >> $USAGE_OUTPUT
 
