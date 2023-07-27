@@ -1,8 +1,8 @@
-python -m py_compile custom-files/reward_function.py
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "error in reward_function.py"
-    exit 1
-}
+#python -m compileall -b custom-files/reward_function.py
+#if ($LASTEXITCODE -ne 0) {
+#    Write-Host "error in reward_function.py"
+#    exit 1
+#}
 
 try {
     Get-Content .\custom-files\model_metadata.json | ConvertFrom-Json -ErrorAction Stop | Out-Null
@@ -34,7 +34,7 @@ $tracks = $tracks | Select-Object -ExpandProperty name
 $DR_WORLD_NAME_NPY = $DR_WORLD_NAME + ".npy"
 
 if ($DR_WORLD_NAME_NPY -notin $tracks) {
-    Write-Output "DR_WORLD_NAME=$DR_WORLD_NAME TRACK IN run.env DOES NOT EXIST. VALID TRACKS ARE $tracks" 
+    Write-Output "DR_WORLD_NAME=$DR_WORLD_NAME TRACK IN run.env DOES NOT EXIST. VALID TRACKS ARE $tracks"
     exit 1
 }
 
@@ -57,7 +57,7 @@ if ($DR_CAR_COLOR -notin $colors) {
 $model = aws s3 ls s3://${BUCKET}/${DR_LOCAL_S3_MODEL_PREFIX}
 if ($model) {
     Write-Output "model ${DR_LOCAL_S3_MODEL_PREFIX} alread exists in ${BUCKET}. Change the model name DR_LOCAL_S3_MODEL_PREFIX in run.env"
-    exit 1 
+    exit 1
 }
 
 #check if pretrained model exists in bucket

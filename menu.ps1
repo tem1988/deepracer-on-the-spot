@@ -106,11 +106,10 @@ $OPTIONS = [PSCustomObject] @{
     10 = [PSCustomObject] @{ "label" = "Modify Num of episodes between training"; "file" = "custom-files/hyperparameters.json"; "key" = "num_episodes_between_training"; "dtype" = "int" }
     11 = [PSCustomObject] @{ "label" = "Modify Num Epochs"; "file" = "custom-files/hyperparameters.json"; "key" = "num_epochs"; "dtype" = "int" }
     12 = [PSCustomObject] @{ "label" = "Modify Action Space"; "file" = "custom-files/model_metadata.json"; "key" = "action_space"; "dtype" = "array" }
-    13 = [PSCustomObject] @{ "label" = "Modify Base Stack Name"; "file" = "custom-files/run.env"; "key" = "BASE_STACK_NAME"; "dtype" = "string" }
+    13 = [PSCustomObject] @{ "label" = "Modify Base Stack Name"; "file" = "custom-files/run.env"; "key" = "STACK"; "dtype" = "string" }
     14 = [PSCustomObject] @{ "label" = "Set New Reward Function"; "func" = "set_new_reward" }
     15 = [PSCustomObject] @{ "label" = "Add IP Access"; "func" = "add_ip" }
-    16 = [PSCustomObject] @{ "label" = "Run New Training"; "func" = "run_training"; "args" = "(False;)" }
-    17 = [PSCustomObject] @{ "label" = "Continue A Training"; "func" = "run_training"; "args" = "(True;)" }
+    16 = [PSCustomObject] @{ "label" = "Run New Training"; "func" = "run_training" }
     0  = [PSCustomObject] @{ "label" = "Quit" }
 }
 
@@ -140,11 +139,18 @@ function Show-Menu {
 }
 
 function Run-AWSTraining {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        $pretrained = $false
-    )
+
+    Write-Output "Select Type of training:"
+    Write-Output "1. New Training"
+    Write-Output "2. Continue"
+    $pretrained = Read-Host "Enter your choice (1-2)"
+
+    if ($pretrained -eq 1) { $pretrained = $false }
+    elseif ($pretrained -eq 2) { $pretrained = $true }
+    else {
+        Write-Output "Invalid Choice"
+        exit
+    }
 
     $modelname = $DR_LOCAL_S3_MODEL_PREFIX
     $pre_modelname = $DR_LOCAL_S3_PRETRAINED_PREFIX
@@ -229,7 +235,7 @@ function Run-AWSTraining {
 
     $ttl = read-host "Insert Time to live (Minutes):"
 
-    .\create-instance.ps1 -baseResourcesStackName $BASE_STACK_NAME -stackName $modelname -timeToLiveInMinutes $ttl -machinetype $machinetype -EC2Type $standardspot
+    .\create-instance.ps1 -baseResourcesStackName $STACK -stackName $modelname -timeToLiveInMinutes $ttl -machinetype $machinetype -EC2Type $standardspot
 
 
 }
@@ -331,10 +337,10 @@ do {
                 update-actionSpace -Action $Action -key $key
             }
         } '13' {
-            "Current value of BASE_STACK_NAME = $BASE_STACK_NAME"
-            $BASE_STACK_NAME = Read-Host "Input new value for BASE_STACK_NAME (keep blank for current)"
-            if ($BASE_STACK_NAME) {
-                update-runEnvVariables -key "BASE_STACK_NAME" -value $BASE_STACK_NAME
+            "Current value of STACK = $STACK"
+            $STACK = Read-Host "Input new value for STACK (keep blank for current)"
+            if ($STACK) {
+                update-runEnvVariables -key "STACK" -value $STACK
             }
         } '14' {
 
@@ -343,9 +349,6 @@ do {
         }
         '16' {
             Run-AWSTraining
-        }
-        '17' {
-
         }
     }
     pause

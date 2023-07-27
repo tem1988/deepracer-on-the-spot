@@ -60,11 +60,11 @@ Resources:
         - !ImportValue
           'Fn::Sub': '${ResourcesStackName}-SecurityGroup'
         TagSpecifications:
-        - ResourceType: instance
+        - ResourceType: instance        
           Tags:
           - Key: Name
             Value: !Sub '${AWS::StackName}'
-        - ResourceType: volume
+        - ResourceType: volume      
           Tags:
           - Key: Name
             Value: !Sub '${AWS::StackName}'
@@ -180,29 +180,29 @@ Resources:
                 <!DOCTYPE html>
                 <html>
                 <body>
-
+                                
                 <h2>All logs summary in one view</h2>
                 <p><a href="output.txt">Output</a></p>
-
+                
                 <h2>Docker logs (last 1000 lines)</h2>
                 <p><a href="sagemaker.txt">Sagemaker</a></p>
                 <p><a href="robomaker.txt">Robomaker (Main worker)</a></p>
                 <p><a href="dockerstatus.txt">docker ps -a (command output)</a></p>
-
+                
                 <h2>Nvidia GPU status</h2>
                 <p><a href="nvidia-smi.txt">nvidia-smi (command output)</a></p>
-
+                
                 <h2>Custom logs (last 1000 lines)</h2>
                 <p><a href="OutputLog.txt">OutputLog</a></p>
                 <p><a href="completedlaps.txt">Completed Laps - last step from Robomaker output (all Workers)</a></p>
-
+                
                 <h2>Configuration files</h2>
                 <p><a href="run.env.txt">run.env</a></p>
                 <p><a href="system.env.txt">system.env</a></p>
                 <p><a href="hyperparameters.json">hyperparameters.json</a></p>
                 <p><a href="model_metadata.json">model_metadata.json</a></p>
                 <p><a href="reward_function.py.txt">reward_function.py</a></p>
-
+                
                 <h2>Training metrics</h2>
                 <p><a href="TrainingMetrics.json">TrainingMetrics.json</a></p>
                 <p><a href="deepracer_checkpoints.json">deepracer_checkpoints.json</a></p>
@@ -226,7 +226,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>       
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -237,7 +237,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>    
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -248,7 +248,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>        
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -259,7 +259,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>        
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -270,7 +270,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>        
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -281,7 +281,7 @@ Resources:
               content: |
                 <!DOCTYPE html>
                 <html>
-                <body>
+                <body>         
                 <h2>Training analysis is typically available 20-30 minutes into training.  Please refresh in a few minutes. </h2>
                 </body>
                 </html>
@@ -291,53 +291,60 @@ Resources:
             /home/ubuntu/bin/web_monitoring.sh:
               content: |
                 #!/bin/bash
-
+                
                 /home/ubuntu/bin/start_analysis.sh
                 USAGE_OUTPUT=output.txt
                 cd ~/deepracer-for-cloud
                 while [ true ]
                 do
+                  # This loop collects training data available and publishes it on the nginx docker. accessible through Public_IP:8100/menu.html                   
+                  
+                  # Update variable references before every iteration in case of any change on the config files, this is similar to dr-reload
                   source ~/deepracer-for-cloud/bin/activate.sh > /dev/null 2>&1
                   echo "-----------------------------------" > $USAGE_OUTPUT
-
+                  
+                  # Get model name being trained
                   cat ~/deepracer-for-cloud/run.env | egrep "^DR_LOCAL_S3_MODEL_PREFIX" >> $USAGE_OUTPUT
-
+                  
+                  # get timestamp to know if the data published is current
                   date --utc +%F_%T_UTC >> $USAGE_OUTPUT
-
+                  
+                  # known training issues # 1 - GPU ran out of memory
                   outofmemoryerrors=$(docker logs $(dr-find-sagemaker) 2>&1 | grep "ran out of memory"|wc -l)
                   if [[ $outofmemoryerrors -ge 1 ]];then
                     echo "  ########### ERROR ------> GPU RAN OUT OF MEMORY !!!!!!  ###########" >> $USAGE_OUTPUT
                   fi
-
+                  
+                  # get Checkpoint status (best checkpoint, last checkpoint, current checkpoint)
                   docker logs $(dr-find-sagemaker) 2>&1 | grep "Best checkpoint" | tail -n 1 >> $USAGE_OUTPUT
                   docker logs $(dr-find-sagemaker) 2>&1 | grep Checkpoint | tail -n 1  >> $USAGE_OUTPUT
-
+                  
                   echo "=====Robomaker (main Worker)=====" >> $USAGE_OUTPUT
                   docker logs $(dr-find-robomaker) 2>&1 | egrep '^(SIM_TRACE_LOG.*(omplete|off_)|^reward_output)' | tail -n 10 | grep "omplete\|off_\|reward_output\|checkpoint"  >> $USAGE_OUTPUT
-
+                  
                   echo "=====Sagemaker policy training=====" >> $USAGE_OUTPUT
                   docker logs $(dr-find-sagemaker) 2>&1 | egrep '^Policy training' | tail -n 1 >> $USAGE_OUTPUT
-
+                  
                   echo "=====GPU performance=====" >> $USAGE_OUTPUT
                   nvidia-smi > nvidia-smi.txt 2>&1
                   grep Default nvidia-smi.txt >> $USAGE_OUTPUT  2>&1
-
+                  
                   echo "=====Docker containers status=====" >> $USAGE_OUTPUT
                   docker ps -a > dockerstatus.txt  2>&1
                   cat dockerstatus.txt >> $USAGE_OUTPUT  2>&1
-
+                  
                   # known training issues # 2 - At least one required DOCKER CONTAINER EXITED
                   dockererrors=$(grep "exited" dockerstatus.txt | egrep 'deepracer-(sagemaker|rlcoach|robomaker)' | wc -l)
                   if [[ $dockererrors -ge 1 ]];then
                     echo "  ########### ERROR ------> At least one required DOCKER CONTAINER EXITED !!!!!!  ###########" >> $USAGE_OUTPUT
                   fi
-
+                  
                   echo "=====CPU average load (1min / 5min / 15min avg)=====" >> $USAGE_OUTPUT
                   cat /proc/loadavg >> $USAGE_OUTPUT 2>&1
-
+                  
                   echo "=====Memory usage=====" >> $USAGE_OUTPUT
                   cat /proc/meminfo | egrep '(^MemTotal|^MemFree|^SwapTotal|^SwapFree)' >> $USAGE_OUTPUT 2>&1
-
+                  
                   echo "=====Robomaker Testing result logs (all Workers)=====" >> $USAGE_OUTPUT
                   for name in `docker ps --format "{{.Names}}" | grep obomaker`
                   do
@@ -349,7 +356,7 @@ Resources:
 
                   echo "=====Sagemaker training logs=====" >> $USAGE_OUTPUT
                   docker logs $(dr-find-sagemaker) 2>&1 | egrep '^Training>' | tail -n 10 >> $USAGE_OUTPUT
-
+                  
                   echo "=====Robomaker Top 10 completed laps (all Workers)=====" >> $USAGE_OUTPUT
                   if [ -f $USAGE_OUTPUT.tmp ] ;then
                     rm "$USAGE_OUTPUT.tmp" > /dev/null 2>&1
@@ -358,16 +365,16 @@ Resources:
                   do
                     docker logs ${name} 2>&1 | egrep '^SIM_TRACE_LOG.*(omplete)' | sort --field-separator=',' --key=2 | head -n 10000 >> $USAGE_OUTPUT.tmp
                   done
-                  echo "Number of completed laps: $(cat $USAGE_OUTPUT.tmp | wc -l)" >> $USAGE_OUTPUT 2>&1
+                  echo "Number of completed laps: $(cat $USAGE_OUTPUT.tmp | wc -l)" >> $USAGE_OUTPUT 2>&1  
                   cat $USAGE_OUTPUT.tmp | sort --field-separator=',' --key=2 | head -n 1000 > completedlaps.txt 2>&1
                   head completedlaps.txt -n 10 >> $USAGE_OUTPUT 2>&1
-
+                  
                   echo "=====Robomaker (main Worker) - OutputLog: =====" >> $USAGE_OUTPUT
                   docker logs $(dr-find-robomaker) 2>&1 | egrep '^OutputLog' | tail -n 1000 > OutputLog.txt
                   tail OutputLog.txt -n 10 >> $USAGE_OUTPUT
                   rm $USAGE_OUTPUT.tmp  > /dev/null 2>&1
                   echo "###################" >> $USAGE_OUTPUT
-
+                
                   # Collecting remaining common output files, metrics and uploading them to website
                   docker logs $(dr-find-sagemaker) 2>&1 | tail -n 1000 > sagemaker.txt
                   docker logs $(dr-find-robomaker) 2>&1 | tail -n 1000 > robomaker.txt
@@ -413,7 +420,7 @@ Resources:
                     docker cp $ANALYSIS_ID:/workspace/Training_and_Evaluation_Overview.html .
                     docker cp Training_and_Evaluation_Overview.html $ID:/usr/share/nginx/html/ > /dev/null 2>&1
                   done
-
+                  
                   # if the EC2 has started the termination process we do not want to upload $USAGE_OUTPUT to S3
                   if [[ ! -f /home/ubuntu/bin/termination.started ]];then
                     cp $USAGE_OUTPUT /tmp/logs/ > /dev/null 2>&1
@@ -437,7 +444,7 @@ Resources:
                 dr-download-custom-files
                 cp custom_files/*.env .
                 dr-reload
-                # There is a bug where at some times the training fails to start, so we start, stop and start it again to reduce the occurrences of this issue.
+                # There is a bug where at some times the training fails to start, so we start, stop and start it again to reduce the occurrences of this issue. 
                 nohup /bin/bash -lc 'cd ~/deepracer-for-cloud/; dr-start-training -qw; sleep 120; dr-stop-training; sleep 60; echo y | docker container prune; dr-reload; dr-start-training -qwv' &
                 mkdir -p /tmp/logs/
                 # We want to be able to monitor our EC2 training without needing to connect to console, so we upload all needed info to Public_IP:8100/menu.html using this script
@@ -450,7 +457,7 @@ Resources:
                     fi
                     # Update variable references before every iteration in case of any change on the config files
                     source ~/deepracer-for-cloud/bin/activate.sh
-
+                    
                     for name in `docker ps -a --format "{{.Names}}"`; do
                         docker logs ${name} > /tmp/logs/${name}.log 2>&1
                     done
@@ -477,7 +484,7 @@ Resources:
                 source bin/activate.sh
 
                 docker run -d -p 8888:8888 --name deepracer-analysis awsdeepracercommunity/deepracer-analysis:cpu
-
+                
                 while [ "$TOKEN" == "" ]
                 do
                   TOKEN=$(docker logs deepracer-analysis 2>&1 | grep -o -E "token=[0-9a-f]+" | head -n 1)
@@ -583,7 +590,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Training_progress.py:
+            /home/ubuntu/deepracer-for-cloud/Training_progress.py:     
               content: |
                 # ---
                 # jupyter:
@@ -648,7 +655,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Quintiles.py:
+            /home/ubuntu/deepracer-for-cloud/Quintiles.py:     
               content: |
                 # ---
                 # jupyter:
@@ -705,7 +712,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Heatmap.py:
+            /home/ubuntu/deepracer-for-cloud/Heatmap.py:     
               content: |
                 # ---
                 # jupyter:
@@ -760,7 +767,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Data_tables.py:
+            /home/ubuntu/deepracer-for-cloud/Data_tables.py:     
               content: |
                 # ---
                 # jupyter:
@@ -803,11 +810,11 @@ Resources:
                 import warnings
                 warnings.filterwarnings('ignore')
                 # -
-
+                
                 # ## Data in tables
 
                 # ## Ten best rewarded episodes in the training
-
+                
                 # +
                 simulation_agg.nlargest(10, 'reward')
                 # -
@@ -838,7 +845,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Path_for_complete_laps.py:
+            /home/ubuntu/deepracer-for-cloud/Path_for_complete_laps.py:     
               content: |
                 # ---
                 # jupyter:
@@ -891,6 +898,7 @@ Resources:
                 # -
 
                 # ## Path taken for highest rewarded complete laps
+                
                 # +
                 episodes_to_plot = complete_ones.nlargest(5,'reward')
                 pu.plot_selected_laps(episodes_to_plot, df, track, section_to_plot="unique_episode")
@@ -898,7 +906,7 @@ Resources:
               mode : "000755"
               owner: ubuntu
               group: ubuntu
-            /home/ubuntu/deepracer-for-cloud/Training_and_Evaluation_Overview.py:
+            /home/ubuntu/deepracer-for-cloud/Training_and_Evaluation_Overview.py:     
               content: |
                 # ---
                 # jupyter:
@@ -914,16 +922,20 @@ Resources:
                 #     language: python
                 #     name: python3
                 # ---
+
                 # +
                 #Import block to bring in dependencies
                 from deepracer.logs import metrics
                 import matplotlib.pyplot as plt
                 import numpy as np
+
                 # Ignore deprecation warnings we have no power over
                 import warnings
                 warnings.filterwarnings('ignore')
                 # -
+
                 # ## Completion of Training and Evaluation per Iteration
+
                 # +
                 try:
                   tm = metrics.TrainingMetrics("DEEPRACER_S3_URI")
@@ -932,7 +944,9 @@ Resources:
                 except Exception:
                   print("Logs are not yet available.  It typically takes 25 minutes from the start of training for them to be available.")
                 # -
+
                 # ## Best Lap Progression - is your model getting faster?
+                
                 # +
                 try:
                   train=tm.getTraining()
@@ -1014,7 +1028,7 @@ Resources:
         Variables:
           INTERRUPTION_NOTIFICATION: !ImportValue
                                      'Fn::Sub': '${ResourcesStackName}-InterruptionNotification'
-
+      
   LambdaFunctionRole:
     Type: AWS::IAM::Role
     Properties:

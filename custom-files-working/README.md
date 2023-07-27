@@ -11,5 +11,5 @@
 * `num_episodes_between_training`: Integer between `5` and `100` (inclusive). Default is `20`.
 * `num_epochs`: Values between `3` and `10` (inclusive). Default is `3`.
 * `stack_size`: Default is `1`.
-* `term_cond_avg_score`: Values betweaen `35000.0` and `100000.0`.
+* `term_cond_avg_score`: Values between `35000.0` and `100000.0`.
 * `term_cond_max_episodes`: Default is `100000`.
