@@ -1,8 +1,8 @@
-#python -m compileall -b custom-files/reward_function.py
-#if ($LASTEXITCODE -ne 0) {
-#    Write-Host "error in reward_function.py"
-#    exit 1
-#}
+python -m py_compile custom-files/reward_function.py
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "error in reward_function.py"
+    exit 1
+}
 
 try {
     Get-Content .\custom-files\model_metadata.json | ConvertFrom-Json -ErrorAction Stop | Out-Null
