@@ -1,198 +1,312 @@
-from scipy.spatial import KDTree
+# -*- coding: utf-8 -*-
 
-# Predefined path
-waypoints = [[3.06613743e-03, -3.35292196e+00],
-             [2.67241131e-01, -3.49794650e+00],
-             [5.31415537e-01, -3.64297259e+00],
-             [7.95588166e-01, -3.78800189e+00],
-             [1.05975971e+00, -3.93303442e+00],
-             [1.32392955e+00, -4.07806993e+00],
-             [1.58810449e+00, -4.22309446e+00],
-             [1.85228902e+00, -4.36809993e+00],
-             [2.11648250e+00, -4.51308584e+00],
-             [2.38068056e+00, -4.65806341e+00],
-             [2.64483607e+00, -4.80312848e+00],
-             [2.90893853e+00, -4.94830608e+00],
-             [3.17307143e+00, -5.09341778e+00],
-             [3.43717637e+00, -5.23858857e+00],
-             [3.70150031e+00, -5.38127794e+00],
-             [3.96634570e+00, -5.51901067e+00],
-             [4.23186514e+00, -5.64936775e+00],
-             [4.49808828e+00, -5.77004974e+00],
-             [4.76491877e+00, -5.87893423e+00],
-             [5.03213904e+00, -5.97411263e+00],
-             [5.29941737e+00, -6.05383498e+00],
-             [5.56631095e+00, -6.11655620e+00],
-             [5.83226873e+00, -6.16087723e+00],
-             [6.09662589e+00, -6.18550317e+00],
-             [6.35856612e+00, -6.18904532e+00],
-             [6.61708920e+00, -6.17011220e+00],
-             [6.87093295e+00, -6.12718686e+00],
-             [7.11844170e+00, -6.05857637e+00],
-             [7.35899564e+00, -5.96683515e+00],
-             [7.59154123e+00, -5.85239626e+00],
-             [7.81491785e+00, -5.71552269e+00],
-             [8.02777995e+00, -5.55631153e+00],
-             [8.22853989e+00, -5.37478447e+00],
-             [8.41518143e+00, -5.17083429e+00],
-             [8.58523875e+00, -4.94459288e+00],
-             [8.73566051e+00, -4.69676101e+00],
-             [8.86275893e+00, -4.42940477e+00],
-             [8.96240549e+00, -4.14733614e+00],
-             [9.03135173e+00, -3.85835748e+00],
-             [9.06880614e+00, -3.56968676e+00],
-             [9.07586689e+00, -3.28599254e+00],
-             [9.05432380e+00, -3.01022748e+00],
-             [9.00601489e+00, -2.74439112e+00],
-             [8.93252930e+00, -2.49001352e+00],
-             [8.83524607e+00, -2.24837453e+00],
-             [8.71528235e+00, -2.02068394e+00],
-             [8.57346750e+00, -1.80824088e+00],
-             [8.41037771e+00, -1.61256361e+00],
-             [8.22592716e+00, -1.43600036e+00],
-             [8.02290736e+00, -1.27823663e+00],
-             [7.80364659e+00, -1.13878288e+00],
-             [7.57019352e+00, -1.01695447e+00],
-             [7.32438038e+00, -9.11900445e-01],
-             [7.06791009e+00, -8.22547303e-01],
-             [6.80239683e+00, -7.47563074e-01],
-             [6.52939344e+00, -6.85323535e-01],
-             [6.25038967e+00, -6.33927797e-01],
-             [5.96681174e+00, -5.91230113e-01],
-             [5.68003571e+00, -5.54864323e-01],
-             [5.39138471e+00, -5.22319620e-01],
-             [5.09842399e+00, -4.87386532e-01],
-             [4.80628470e+00, -4.49038431e-01],
-             [4.51538466e+00, -4.05782607e-01],
-             [4.22618044e+00, -3.56199869e-01],
-             [3.93916391e+00, -2.99005949e-01],
-             [3.65487494e+00, -2.33041781e-01],
-             [3.37390356e+00, -1.57292637e-01],
-             [3.09688851e+00, -7.09021987e-02],
-             [2.82453059e+00,  2.68604507e-02],
-             [2.55751300e+00,  1.36435932e-01],
-             [2.29650784e+00,  2.58062975e-01],
-             [2.04218821e+00,  3.91849392e-01],
-             [1.79515298e+00,  5.37685786e-01],
-             [1.55594231e+00,  6.95335730e-01],
-             [1.32502369e+00,  8.64454511e-01],
-             [1.10280419e+00,  1.04463601e+00],
-             [8.89609496e-01,  1.23540704e+00],
-             [6.85691387e-01,  1.43625451e+00],
-             [4.91242237e-01,  1.64665215e+00],
-             [3.06365323e-01,  1.86603798e+00],
-             [1.30945822e-01,  2.09371460e+00],
-             [-3.52434232e-02,  2.32894765e+00],
-             [-1.92607497e-01,  2.57085073e+00],
-             [-3.41579347e-01,  2.81835620e+00],
-             [-4.82705981e-01,  3.06999380e+00],
-             [-6.16585531e-01,  3.32396915e+00],
-             [-7.44011923e-01,  3.57846379e+00],
-             [-8.66080934e-01,  3.83214021e+00],
-             [-9.80740075e-01,  4.06424643e+00],
-             [-1.09837831e+00,  4.29173932e+00],
-             [-1.22044249e+00,  4.51320963e+00],
-             [-1.34834509e+00,  4.72780944e+00],
-             [-1.48359228e+00,  4.93487868e+00],
-             [-1.62765096e+00,  5.13382516e+00],
-             [-1.78187350e+00,  5.32393360e+00],
-             [-1.94762308e+00,  5.50413085e+00],
-             [-2.12622182e+00,  5.67301022e+00],
-             [-2.31899172e+00,  5.82875796e+00],
-             [-2.52425811e+00,  5.97218546e+00],
-             [-2.74147854e+00,  6.10307965e+00],
-             [-2.97018039e+00,  6.22112980e+00],
-             [-3.20992354e+00,  6.32594348e+00],
-             [-3.46025088e+00,  6.41708204e+00],
-             [-3.72067750e+00,  6.49404987e+00],
-             [-3.99065249e+00,  6.55631225e+00],
-             [-4.26950385e+00,  6.60333860e+00],
-             [-4.55643476e+00,  6.63452575e+00],
-             [-4.85036311e+00,  6.64928303e+00],
-             [-5.14942114e+00,  6.64712959e+00],
-             [-5.44650690e+00,  6.62832235e+00],
-             [-5.73746819e+00,  6.59345960e+00],
-             [-6.02136511e+00,  6.54271373e+00],
-             [-6.29763829e+00,  6.47612848e+00],
-             [-6.56579127e+00,  6.39375615e+00],
-             [-6.82530271e+00,  6.29557629e+00],
-             [-7.07560105e+00,  6.18151596e+00],
-             [-7.31594954e+00,  6.05132759e+00],
-             [-7.54552783e+00,  5.90480988e+00],
-             [-7.76330418e+00,  5.74170649e+00],
-             [-7.96800417e+00,  5.56180857e+00],
-             [-8.15826706e+00,  5.36527644e+00],
-             [-8.33238588e+00,  5.15245116e+00],
-             [-8.48846989e+00,  4.92417026e+00],
-             [-8.62455775e+00,  4.68189027e+00],
-             [-8.73875199e+00,  4.42771188e+00],
-             [-8.82942250e+00,  4.16432251e+00],
-             [-8.89535851e+00,  3.89479781e+00],
-             [-8.93579439e+00,  3.62233877e+00],
-             [-8.95046671e+00,  3.35003251e+00],
-             [-8.93953120e+00,  3.08063940e+00],
-             [-8.90334830e+00,  2.81649926e+00],
-             [-8.84227300e+00,  2.55956910e+00],
-             [-8.75653292e+00,  2.31153298e+00],
-             [-8.64612248e+00,  2.07396789e+00],
-             [-8.51054714e+00,  1.84866170e+00],
-             [-8.35585196e+00,  1.63367378e+00],
-             [-8.18366428e+00,  1.42880458e+00],
-             [-7.99548853e+00,  1.23375813e+00],
-             [-7.79272565e+00,  1.04816547e+00],
-             [-7.57678981e+00,  8.71527017e-01],
-             [-7.34911850e+00,  7.03207860e-01],
-             [-7.11119557e+00,  5.42416760e-01],
-             [-6.86456069e+00,  3.88185680e-01],
-             [-6.61079484e+00,  2.39359492e-01],
-             [-6.35148912e+00,  9.46009079e-02],
-             [-6.08822559e+00, -4.75708909e-02],
-             [-5.82220376e+00, -1.88939493e-01],
-             [-5.55631729e+00, -3.30576122e-01],
-             [-5.29055813e+00, -4.72464831e-01],
-             [-5.02491740e+00, -6.14588034e-01],
-             [-4.75938989e+00, -7.56935413e-01],
-             [-4.49397700e+00, -8.99509739e-01],
-             [-4.22868113e+00, -1.04231576e+00],
-             [-3.96350403e+00, -1.18535695e+00],
-             [-3.69844652e+00, -1.32863491e+00],
-             [-3.43350868e+00, -1.47214979e+00],
-             [-3.16865052e+00, -1.61582240e+00],
-             [-2.90391163e+00, -1.75973114e+00],
-             [-2.63929170e+00, -1.90387536e+00],
-             [-2.37479071e+00, -2.04825504e+00],
-             [-2.11040935e+00, -2.19287151e+00],
-             [-1.84614944e+00, -2.33772850e+00],
-             [-1.58197701e+00, -2.48275852e+00],
-             [-1.31780499e+00, -2.62778950e+00],
-             [-1.05363187e+00, -2.77281845e+00],
-             [-7.89457887e-01, -2.91784549e+00],
-             [-5.25283545e-01, -3.06287146e+00],
-             [-2.61108730e-01, -3.20789695e+00],
-             [3.06613743e-03, -3.35292196e+00]]
-
-# Create k-d tree
-waypoints_tree = KDTree(waypoints)
-
-# Function to calculate the Euclidean distance between two points
+import math
+import traceback
 
 
-def distance(point1, point2):
-    return ((point1[0]-point2[0])**2 + (point1[1]-point2[1])**2)**0.5
+class RewardEvaluator:
+
+    MAX_SPEED = float(5.0)
+    MIN_SPEED = float(1.5)
+
+    MAX_STEERING_ANGLE = 30
+    SMOOTH_STEERING_ANGLE_TRESHOLD = 15  # Greater than minimum angle defined in action space
+
+    SAFE_HORIZON_DISTANCE = 0.8  # meters, able to fully stop. See ANGLE_IS_CURVE.
+
+    CENTERLINE_FOLLOW_RATIO_TRESHOLD = 0.12
+
+    ANGLE_IS_CURVE = 3
+
+    PENALTY_MAX = 0.001
+    REWARD_MAX = 89999  # 100000
+
+    params = None
+
+    all_wheels_on_track = None
+    x = None
+    y = None
+    distance_from_center = None
+    is_left_of_center = None
+    is_reversed = None
+    heading = None
+    progress = None
+    steps = None
+    speed = None
+    steering_angle = None
+    track_width = None
+    waypoints = None
+    closest_waypoints = None
+    nearest_previous_waypoint_ind = None
+    nearest_next_waypoint_ind = None
+
+    log_message = ""
+
+    # method used to extract class properties (status values) from input "params"
+    def init_self(self, params):
+        self.all_wheels_on_track = params['all_wheels_on_track']
+        self.x = params['x']
+        self.y = params['y']
+        self.distance_from_center = params['distance_from_center']
+        self.is_left_of_center = params['is_left_of_center']
+        self.is_reversed = params['is_reversed']
+        self.heading = params['heading']
+        self.progress = params['progress']
+        self.steps = params['steps']
+        self.speed = params['speed']
+        self.steering_angle = params['steering_angle']
+        self.track_width = params['track_width']
+        self.waypoints = params['waypoints']
+        self.closest_waypoints = params['closest_waypoints']
+        self.nearest_previous_waypoint_ind = params['closest_waypoints'][0]
+        self.nearest_next_waypoint_ind = params['closest_waypoints'][1]
+
+    # RewardEvaluator Class constructor
+    def __init__(self, params):
+        self.params = params
+        self.init_self(params)
+
+    # Method used to "print" status values and logged messages into AWS log. Be aware of additional cost Amazon will
+    # charge you when logging is used heavily!!!
+    def status_to_string(self):
+        status = self.params
+        if 'waypoints' in status: del status['waypoints']
+        status['debug_log'] = self.log_message
+        print(status)
+
+    # Gets ind'th waypoint from the list of all waypoints retrieved in params['waypoints']. Waypoints are circuit track
+    # specific (every time params is provided it is same list for particular circuit). If index is out of range (greater
+    # than len(params['waypoints']) a waypoint from the beginning of the list ir returned.
+    def get_way_point(self, index_way_point):
+        if index_way_point > (len(self.waypoints) - 1):
+            return self.waypoints[index_way_point - (len(self.waypoints))]
+        elif index_way_point < 0:
+            return self.waypoints[len(self.waypoints) + index_way_point]
+        else:
+            return self.waypoints[index_way_point]
+
+    # Calculates distance [m] between two waypoints [x1,y1] and [x2,y2]
+    @staticmethod
+    def get_way_points_distance(previous_waypoint, next_waypoint):
+        return math.sqrt(pow(next_waypoint[1] - previous_waypoint[1], 2) + pow(next_waypoint[0] - previous_waypoint[0], 2))
+
+    # Calculates heading direction between two waypoints - angle in cartesian layout. Clockwise values
+    # 0 to -180 degrees, anti clockwise 0 to +180 degrees
+    @staticmethod
+    def get_heading_between_waypoints(previous_waypoint, next_waypoint):
+        track_direction = math.atan2(next_waypoint[1] - previous_waypoint[1], next_waypoint[0] - previous_waypoint[0])
+        return math.degrees(track_direction)
+
+    # Calculates the misalignment of the heading of the car () compared to center line of the track (defined by previous and
+    # the next waypoint (the car is between them)
+    def get_car_heading_error(self):  # track direction vs heading
+        next_point = self.get_way_point(self.closest_waypoints[1])
+        prev_point = self.get_way_point(self.closest_waypoints[0])
+        track_direction = math.atan2(next_point[1] - prev_point[1], next_point[0] - prev_point[0])
+        track_direction = math.degrees(track_direction)
+        return track_direction - self.heading
+
+    # Based on CarHeadingError (how much the car is misaligned with th direction of the track) and based on the "safe
+    # horizon distance it is indicating the current speed (params['speed']) is/not optimal.
+    def get_optimum_speed_ratio(self):
+        if abs(self.get_car_heading_error()) >= self.MAX_STEERING_ANGLE:
+            return float(0.34)
+        if abs(self.get_car_heading_error()) >= (self.MAX_STEERING_ANGLE * 0.75):
+            return float(0.67)
+        current_position_xy = (self.x, self.y)
+        current_wp_index = self.closest_waypoints[1]
+        length = self.get_way_points_distance((self.x, self.y), self.get_way_point(current_wp_index))
+        current_track_heading = self.get_heading_between_waypoints(self.get_way_point(current_wp_index),
+                                                                   self.get_way_point(current_wp_index + 1))
+        while True:
+            from_point = self.get_way_point(current_wp_index)
+            to_point = self.get_way_point(current_wp_index + 1)
+            length = length + self.get_way_points_distance(from_point, to_point)
+            if length >= self.SAFE_HORIZON_DISTANCE:
+                heading_to_horizont_point = self.get_heading_between_waypoints(self.get_way_point(self.closest_waypoints[1]), to_point)
+                if abs(current_track_heading - heading_to_horizont_point) > (self.MAX_STEERING_ANGLE * 0.5):
+                    return float(0.33)
+                elif abs(current_track_heading - heading_to_horizont_point) > (self.MAX_STEERING_ANGLE * 0.25):
+                    return float(0.66)
+                else:
+                    return float(1.0)
+            current_wp_index = current_wp_index + 1
+
+    # Calculates angle of the turn the car is right now (degrees). It is angle between previous and next segment of the
+    # track (previous_waypoint - closest_waypoint and closest_waypoint - next_waypoint)
+    def get_turn_angle(self):
+        current_waypoint = self.closest_waypoints[0]
+        angle_ahead = self.get_heading_between_waypoints(self.get_way_point(current_waypoint),
+                                                         self.get_way_point(current_waypoint + 1))
+        angle_behind = self.get_heading_between_waypoints(self.get_way_point(current_waypoint - 1),
+                                                          self.get_way_point(current_waypoint))
+        result = angle_ahead - angle_behind
+        if angle_ahead < -90 and angle_behind > 90:
+            return 360 + result
+        elif result > 180:
+            return -180 + (result - 180)
+        elif result < -180:
+            return 180 - (result + 180)
+        else:
+            return result
+
+    # Indicates the car is in turn
+    def is_in_turn(self):
+        if abs(self.get_turn_angle()) >= self.ANGLE_IS_CURVE:
+            return True
+        else:
+            return False
+        return False
+
+    # Indicates the car has reached final waypoint of the circuit track
+    def reached_target(self):
+        max_waypoint_index = len(self.waypoints) - 1
+        if self.closest_waypoints[1] == max_waypoint_index:
+            return True
+        else:
+            return False
+
+    # Provides direction of the next turn in order to let you reward right position to the center line (before the left
+    # turn position of the car sligthly right can be rewarded (and vice versa) - see is_in_optimized_corridor()
+    def get_expected_turn_direction(self):
+        current_waypoint_index = self.closest_waypoints[1]
+        length = self.get_way_points_distance((self.x, self.y), self.get_way_point(current_waypoint_index))
+        while True:
+            from_point = self.get_way_point(current_waypoint_index)
+            to_point = self.get_way_point(current_waypoint_index + 1)
+            length = length + self.get_way_points_distance(from_point, to_point)
+            if length >= self.SAFE_HORIZON_DISTANCE * 4.5:
+                result = self.get_heading_between_waypoints(self.get_way_point(self.closest_waypoints[1]), to_point)
+                if result > 2:
+                    return "LEFT"
+                elif result < -2:
+                    return "RIGHT"
+                else:
+                    return "STRAIGHT"
+            current_waypoint_index = current_waypoint_index + 1
+
+    # Based on the direction of the next turn it indicates the car is on the right side to the center line in order to
+    # drive through smoothly - see get_expected_turn_direction().
+    def is_in_optimized_corridor(self):
+        if self.is_in_turn():
+            turn_angle = self.get_turn_angle()
+            if turn_angle > 0:  # Turning LEFT - better be by left side
+                if (self.is_left_of_center == True and self.distance_from_center <= (
+                        self.CENTERLINE_FOLLOW_RATIO_TRESHOLD * 2 * self.track_width) or
+                        self.is_left_of_center == False and self.distance_from_center <= (
+                                self.CENTERLINE_FOLLOW_RATIO_TRESHOLD / 2 * self.track_width)):
+                    return True
+                else:
+                    return False
+            else:  # Turning RIGHT - better be by right side
+                if self.is_left_of_center == True and self.distance_from_center <= (self.CENTERLINE_FOLLOW_RATIO_TRESHOLD / 2 * self.track_width) or self.is_left_of_center == False and self.distance_from_center <= (self.CENTERLINE_FOLLOW_RATIO_TRESHOLD * 2 * self.track_width):
+                    return True
+                else:
+                    return False
+        else:
+            next_turn = self.get_expected_turn_direction()
+            if next_turn == "LEFT":  # Be more righ side before turn
+                if self.is_left_of_center == True and self.distance_from_center <= (
+                        self.CENTERLINE_FOLLOW_RATIO_TRESHOLD / 2 * self.track_width) or self.is_left_of_center == False and self.distance_from_center <= (self.CENTERLINE_FOLLOW_RATIO_TRESHOLD * 2 * self.track_width):
+                    return True
+                else:
+                    return False
+            elif next_turn == "RIGHT":  # Be more left side before turn:
+                if self.is_left_of_center == True and self.distance_from_center <= (
+                        self.CENTERLINE_FOLLOW_RATIO_TRESHOLD * 2 * self.track_width) or self.is_left_of_center == False and self.distance_from_center <= (self.CENTERLINE_FOLLOW_RATIO_TRESHOLD / 2 * self.track_width):
+                    return True
+                else:
+                    return False
+            else:  # Be aligned with center line:
+                if self.distance_from_center <= (self.CENTERLINE_FOLLOW_RATIO_TRESHOLD * 2 * self.track_width):
+                    return True
+                else:
+                    return False
+
+    def is_optimum_speed(self):
+        if abs(self.speed - (self.get_optimum_speed_ratio() * self.MAX_SPEED)) < (self.MAX_SPEED * 0.15) and self.MIN_SPEED <= self.speed <= self.MAX_SPEED:
+            return True
+        else:
+            return False
+
+    # Accumulates all logging messages into one string which you may need to write to the log (uncomment line
+    # self.status_to_string() in evaluate() if you want to log status and calculation outputs.
+    def log_feature(self, message):
+        if message is None:
+            message = 'NULL'
+        self.log_message = self.log_message + str(message) + '|'
+
+    # Here you can implement your logic to calculate reward value based on input parameters (params) and use
+    # implemented features (as methods above)
+    def evaluate(self):
+        self.init_self(self.params)
+        result_reward = float(0.001)
+        try:
+            # No reward => Fatal behaviour, NOREWARD!  (out of track, reversed, sleeping)
+            if self.all_wheels_on_track == False or self.is_reversed == True or (self.speed < (0.1 * self.MAX_SPEED)):
+                self.log_feature("all_wheels_on_track or is_reversed issue")
+                self.status_to_string()
+                return float(self.PENALTY_MAX)
+
+            # REWARD 50 - EARLY Basic learning => easy factors accelerate learning
+            # Right heading, no crazy steering
+            if abs(self.get_car_heading_error()) <= self.SMOOTH_STEERING_ANGLE_TRESHOLD:
+                self.log_feature("getCarHeadingOK")
+                result_reward = result_reward + self.REWARD_MAX * 0.3
+
+            if abs(self.steering_angle) <= self.SMOOTH_STEERING_ANGLE_TRESHOLD:
+                self.log_feature("getSteeringAngleOK")
+                result_reward = result_reward + self.REWARD_MAX * 0.15
+
+            # REWARD100 - LATER ADVANCED complex learning
+            # Ideal path, speed wherever possible, carefully in corners
+            if self.is_in_optimized_corridor():
+                self.log_feature("is_in_optimized_corridor")
+                result_reward = result_reward + float(self.REWARD_MAX * 0.45)
+
+            if not (self.is_in_turn()) and (abs(self.speed - self.MAX_SPEED) < (0.1 * self.MAX_SPEED)) \
+                    and abs(self.get_car_heading_error()) <= self.SMOOTH_STEERING_ANGLE_TRESHOLD:
+                self.log_feature("isStraightOnMaxSpeed")
+                result_reward = result_reward + float(self.REWARD_MAX * 1)
+
+            if self.is_in_turn() and self.is_optimum_speed():
+                self.log_feature("isOptimumSpeedinCurve")
+                result_reward = result_reward + float(self.REWARD_MAX * 0.6)
+
+            # REWAR - Progress bonus
+            TOTAL_NUM_STEPS = 150
+            if (self.steps % 100 == 0) and self.progress > (self.steps / TOTAL_NUM_STEPS):
+                self.log_feature("progressingOk")
+                result_reward = result_reward + self.REWARD_MAX * 0.4
+
+            # Reach Max Waypoint - get extra reward
+            if self.reached_target():
+                self.log_feature("reached_target")
+                result_reward = float(self.REWARD_MAX)
+
+        except Exception as e:
+            print("Error : " + str(e))
+            print(traceback.format_exc())
+
+        # Finally - check reward value does not exceed maximum value
+        if result_reward > 900000:
+            result_reward = 900000
+
+        self.log_feature(result_reward)
+        # self.status_to_string()
+
+        return float(result_reward)
+
+
+"""
+This is the core function called by the environment to calculate reward value for every point of time of the training.
+params: input values for the reward calculation (see above)
+
+Usually, this function contains all reward calculations a logic implemented. Instead, this code example is instantiating
+RewardEvaluator which has implemented a set of features one can easily combine and use.
+"""
 
 
 def reward_function(params):
-    car_position = [params['x'], params['y']]
-
-    # Query the k-d tree to find the index of the closest waypoint
-    _, closest_waypoint_index = waypoints_tree.query(car_position)
-
-    # Calculate distance to the closest waypoint
-    distance_to_waypoint = distance(
-        car_position, waypoints[closest_waypoint_index])
-
-    # Reward the car - the closer to the waypoint, the higher the reward
-    # You may need to adjust the reward calculation based on your specific requirements
-    reward = 1.0 / (1.0 + distance_to_waypoint)
-
-    return float(reward)
+    re = RewardEvaluator(params)
+    return float(re.evaluate())
