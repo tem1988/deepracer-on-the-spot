@@ -20,14 +20,6 @@ catch {
     exit 1
 }
 
-#track exists
-#Get-Content .\custom-files\run.env | ForEach-Object {
-#    $pair = $_.Split("=")
-#    if ($pair.Length -eq 2) {
-#        Set-Variable -Name $pair[0] -Value  $pair[1] -Scope Script
-#    }
-#}
-
 $tracks = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/aws-deepracer-community/deepracer-race-data/contents/raw_data/tracks/npy"
 $tracks = $tracks | Select-Object -ExpandProperty name
 
