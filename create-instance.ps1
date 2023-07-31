@@ -19,12 +19,6 @@ param (
     $EC2Type
 )
 
-$stackName = $stackName.TrimEnd("`r")
-$EC2Type = $EC2Type.TrimEnd("`r")
-$machinetype = $machinetype.TrimEnd("`r")
-$baseResourcesStackName = $baseResourcesStackName.TrimEnd("`r")
-#Set-PSDebug -Trace 2
-
 if (-not $DEEPRACER_INSTANCE_TYPE) {
     $instanceTypeConfig=$machinetype
 }
@@ -70,7 +64,12 @@ $CUSTOM_FILE_LOCATION= $DR_LOCAL_S3_CUSTOM_FILES_PREFIX
 aws s3 cp .\custom-files\ s3://$BUCKET/$CUSTOM_FILE_LOCATION/ --recursive
 pause
 
-aws cloudformation deploy --stack-name $stackName --parameter-overrides InstanceType=$instanceTypeConfig ResourcesStackName=$baseResourcesStackName TimeToLiveInMinutes=$timeToLiveInMinutes AmiId=$amiId BUCKET=$BUCKET CUSTOMFILELOCATION=$CUSTOM_FILE_LOCATION --template-file $templateFile --capabilities CAPABILITY_IAM --s3-bucket $BUCKET --force-upload
+$global:deploy = aws cloudformation deploy --stack-name $stackName --parameter-overrides InstanceType=$instanceTypeConfig ResourcesStackName=$baseResourcesStackName TimeToLiveInMinutes=$timeToLiveInMinutes AmiId=$amiId BUCKET=$BUCKET CUSTOMFILELOCATION=$CUSTOM_FILE_LOCATION --template-file $templateFile --capabilities CAPABILITY_IAM --s3-bucket $BUCKET --force-upload
+write-output "finished cloudformation deploy"
+Pause
+Write-Output $global:deploy
+
+pause
 
 $ASG = aws cloudformation describe-stacks --stack-name $stackName
 $ASG = ($asg | ConvertFrom-Json).stacks.outputs.outputvalue

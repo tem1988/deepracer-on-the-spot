@@ -138,7 +138,7 @@ function Show-Menu {
 
 }
 
-function Run-AWSTraining {
+function Start-AWSTraining-old {
 
     Write-Output "Select Type of training:"
     Write-Output "1. New Training"
@@ -240,7 +240,71 @@ function Run-AWSTraining {
 
 }
 
+function Start-AWSTraining {
 
+
+    Write-Output "DR_LOCAL_S3_MODEL_PREFIX: $($DR_LOCAL_S3_MODEL_PREFIX)"
+    Write-Output "DR_LOCAL_S3_PRETRAINED_PREFIX: $($DR_LOCAL_S3_PRETRAINED_PREFIX)"
+
+    Write-Output "Select EC2 type:"
+    Write-Output "1. spot"
+    Write-Output "2. standard"
+    $standardspot = read-host "Enter your choice (1-2)"
+
+    if ($standardspot -eq 1) { $standardspot = "spot" }
+    elseif ($standardspot -eq 2) { $standardspot = "standard" }
+    else {
+        Write-Output "Invalid Choice"
+        exit
+    }
+    Write-Output "Pick HW configuration:"
+    Write-Output "1. g4dn.2xlarge (RECOMMENDED. any larger will be more expensive)"
+    Write-Output "2. g4dn.4xlarge"
+    Write-Output "3. g4dn.8xlarge"
+    Write-Output "4. g4dn.12xlarge"
+    Write-Output "5. g5.2xlarge"
+    Write-Output "6. g5.4xlarge"
+    Write-Output "7. g5.8xlarge"
+    Write-Output "8. g5.12xlarge"
+    Write-Output "9. Custom"
+    $machinetype = read-host "Enter your choice (1-9)"
+    if ($machinetype -EQ 1) {
+        $machinetype = "g4dn.2xlarge"
+    }
+    elseif ($machinetype -EQ 2) {
+        $machinetype = "g4dn.4xlarge"
+    }
+    elseif ($machinetype -EQ 3) {
+        $machinetype = "g4dn.8xlarge"
+    }
+    elseif ($machinetype -EQ 4) {
+        $machinetype = "g4dn.12xlarge"
+    }
+    elseif ($machinetype -EQ 5) {
+        $machinetype = "g5.2xlarge"
+    }
+    elseif ($machinetype -EQ 6) {
+        $machinetype = "g5.4xlarge"
+    }
+    elseif ($machinetype -EQ 7) {
+        $machinetype = "g5.8xlarge"
+    }
+    elseif ($machinetype -EQ 8) {
+        $machinetype = "g5.12xlarge"
+    }
+    elseif ($machinetype -EQ 9) {
+        $machinetype = "Custom"
+    }
+    else {
+        Write-Output "Invalid Choice"
+        exit
+    }
+
+    $ttl = read-host "Insert Time to live (Minutes):"
+
+    .\create-instance.ps1 -baseResourcesStackName $STACK -stackName $DR_LOCAL_S3_MODEL_PREFIX -timeToLiveInMinutes $ttl -machinetype $machinetype -EC2Type $standardspot
+
+}
 
 do {
     set-runEnvVariables
@@ -348,9 +412,8 @@ do {
 
         }
         '16' {
-            Run-AWSTraining
+            Start-AWSTraining
         }
     }
-    pause
 }
 until ($selection -eq '0')
