@@ -2,13 +2,13 @@
 param (
     [Parameter()]
     [string]
-    $baseResourcesStackName,
+    $baseResourcesStackName="Tomas-IP-Casa",
 
     [string]
-    $stackName,
+    $stackName="alfetta-stack",
 
     [string]
-    $ipAddress
+    $ipAddress="152.168.254.233"
 )
 
 function Get-RuleNumber {
@@ -27,4 +27,6 @@ function Get-RuleNumber {
 
 $ruleN = Get-RuleNumber
 
-aws cloudformation deploy --stack-name $stackName --parameter-overrides ResourcesStackName=$baseResourcesStackName MyIPAddress=$ipAddress RuleNumber=$ruleN --template-file .\scripts\add-access.yaml
+$templateAddAccess = ".\scripts\add-access.yaml"
+
+aws cloudformation deploy --stack-name $stackName --parameter-overrides ResourcesStackName=$baseResourcesStackName MyIPAddress=$ipAddress RuleNumber=$ruleN --template-file $templateAddAccess

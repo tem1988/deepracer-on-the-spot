@@ -99,9 +99,11 @@ function Show-Menu {
     Write-Host "---Configuration---"
 
     Write-Output "1 - Add IP access"
-    Write-Output "2 - Remove IP access"
-    Write-Output "3 - Start Training"
-    Write-Output "4 - Quit"
+    Write-Output "2 - Add IP access"
+    Write-Output "3 - Add IP access"
+    Write-Output "4 - Remove IP access"
+    Write-Output "5 - Start Training"
+    Write-Output "6 - Quit"
 
 }
 
@@ -180,14 +182,22 @@ do {
     $selection = Read-Host "Pick a menu item (0-17):"
     switch ($selection) {
         '1' {
+            Write-Output "View Network ACLs Ip"
+            .\get-IPaccess.ps1
+        }
+        '2' {
+            Write-Output "View Security Groups IP"
+            .\get-IPaccess.ps1
+        }
+        '3' {
             Write-Output "Add IP access"
             .\add-remove-access.ps1
         }
-        '2' {
+        '4' {
             Write-Output "Remove IP access"
             .\add-remove-access.ps1
         }
-        '3' {
+        '5' {
             Start-AWSTraining
         }
     }

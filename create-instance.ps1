@@ -64,10 +64,8 @@ $CUSTOM_FILE_LOCATION= $DR_LOCAL_S3_CUSTOM_FILES_PREFIX
 aws s3 cp .\custom-files\ s3://$BUCKET/$CUSTOM_FILE_LOCATION/ --recursive
 pause
 
-$global:deploy = aws cloudformation deploy --stack-name $stackName --parameter-overrides InstanceType=$instanceTypeConfig ResourcesStackName=$baseResourcesStackName TimeToLiveInMinutes=$timeToLiveInMinutes AmiId=$amiId BUCKET=$BUCKET CUSTOMFILELOCATION=$CUSTOM_FILE_LOCATION --template-file $templateFile --capabilities CAPABILITY_IAM --s3-bucket $BUCKET --force-upload
+aws cloudformation deploy --stack-name $stackName --parameter-overrides InstanceType=$instanceTypeConfig ResourcesStackName=$baseResourcesStackName TimeToLiveInMinutes=$timeToLiveInMinutes AmiId=$amiId BUCKET=$BUCKET CUSTOMFILELOCATION=$CUSTOM_FILE_LOCATION --template-file $templateFile --capabilities CAPABILITY_IAM --s3-bucket $BUCKET --force-upload
 write-output "finished cloudformation deploy"
-Pause
-Write-Output $global:deploy
 
 pause
 
@@ -90,4 +88,5 @@ else {
 Write-Output "Logs will upload every 2 minutes to https://s3.console.aws.amazon.com/s3/buckets/$($BUCKET)/$($stackName)/logs/"
 Write-Output "Training should start shortly on $($EC2_IP):8080"
 Write-Output "Once started, you should also be able to monitor training progress through $($EC2_IP):8100/menu.html"
-return
+pause
+$selection = 0
