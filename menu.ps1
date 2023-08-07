@@ -7,103 +7,114 @@ function set-runEnvVariables {
     }
 }
 
-function update-runEnvVariables {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $key,
-
-        [string]
-        $value
-    )
-
-    $File = Get-Content .\custom-files\run.env
-
-    for ($i = 0; $i -lt $File.Length; $i++) {
-        # Check if the line starts with the key
-        if ($File[$i] -like "$key=*") {
-            # Replace the line with the new value
-            $File[$i] = "$key=$value"
-            break
-        }
-    }
-
-    $File | Out-File -FilePath .\custom-files\run.env -Encoding utf8
-
-}
-
-function update-hyperParameters {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $key,
-
-        [string]
-        $value
-    )
-
-    $hyperparameters = get-content custom-files/hyperparameters.json -Raw | ConvertFrom-Json
-    $hyperparameters.$key = $value
-
-    $hyperparameters | ConvertTo-Json | Set-Content -Path custom-files/hyperparameters.json
-
-}
-
-function update-actionSpace {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $Action,
-
-        [Parameter()]
-        [string]
-        $key,
-
-        [Parameter()]
-        [string]
-        $value
-    )
-
-
-    $model_metadata = (get-content custom-files/model_metadata.json -Raw | ConvertFrom-Json)
-
-    if ($Action -eq "Add") {
-        $newActionSpace = @{
-            "steering_angle" = $key
-            "speed"          = $value
-        }
-        $newObject = New-Object PSObject -Property $newActionSpace
-        $model_metadata.action_space += $newObject
-
-        $model_metadata | ConvertTo-Json | Set-Content -Path custom-files/model_metadata.json
-
-    }
-    elseif ($Action -eq "Remove") {
-        $model_metadata.action_space = $model_metadata.action_space | Where-Object { $_.steering_angle -ne $key }
-        $model_metadata | ConvertTo-Json | Set-Content -Path custom-files/model_metadata.json
-
-    }
-
-}
-
-$hyperparameters = get-content custom-files/hyperparameters.json | ConvertFrom-Json
-$model_metadata = get-content custom-files/model_metadata.json | ConvertFrom-Json
-
-
 function Show-Menu {
 
     Write-Host "--- AWS Console (CLI Version) ---"
     Write-Host "---Configuration---"
 
-    Write-Output "1 - Add IP access"
-    Write-Output "2 - Add IP access"
+    Write-Output "1 - View Network ACLs Ip"
+    Write-Output "2 - View Security Groups IP - no anda"
     Write-Output "3 - Add IP access"
-    Write-Output "4 - Remove IP access"
-    Write-Output "5 - Start Training"
-    Write-Output "6 - Quit"
+    Write-Output "4 - Remove IP access - no anda"
+    Write-Output "5 - Get Spot instance price"
+    Write-Output "6 - Start Training"
+    Write-Output "0 - Quit"
+
+    $selection = Read-Host "Pick a menu item (0-5):"
+    switch ($selection) {
+        '1' {
+            Write-Output "View Network ACLs Ip"
+            .\get-IPaccess.ps1 -Type "Network ACL"
+        }
+        '2' {
+            Write-Output "View Security Groups IP"
+            .\get-IPaccess.ps1 -stackName $STACK -Type "Security Group ACL"
+        }
+        '3' {
+            Write-Output "Add IP access"
+            .\add-remove-access.ps1
+        }
+        '4' {
+            Write-Output "Remove IP access"
+            .\add-remove-access.ps1
+        }
+        '5' {
+            get-spotPrice
+        }
+        '6' {
+            Start-AWSTraining
+        }
+        '0' {
+            exit
+        }
+    }
+
+}
+
+function get-spotPrice {
+    Write-Output "Select EC2 type:"
+    Write-Output "1. spot"
+    Write-Output "2. standard"
+    $standardspot = read-host "Enter your choice (1-2)"
+
+
+    if ($standardspot -eq 1) { $standardspot = "spot" }
+    elseif ($standardspot -eq 2) { $standardspot = "standard" }
+    else {
+        Write-Output "Invalid Choice"
+        exit
+    }
+
+    Write-Output "Pick HW configuration:"
+    Write-Output "1. g4dn.2xlarge"
+    Write-Output "2. g4dn.4xlarge"
+    Write-Output "3. g4dn.8xlarge"
+    Write-Output "4. g4dn.12xlarge"
+    Write-Output "5. g5.2xlarge"
+    Write-Output "6. g5.4xlarge"
+    Write-Output "7. g5.8xlarge"
+    Write-Output "8. g5.12xlarge"
+    Write-Output "9. Custom"
+    $machinetype = read-host "Enter your choice (1-9)"
+    if ($machinetype -EQ 1) {
+        $machinetype = "g4dn.2xlarge"
+    }
+    elseif ($machinetype -EQ 2) {
+        $machinetype = "g4dn.4xlarge"
+    }
+    elseif ($machinetype -EQ 3) {
+        $machinetype = "g4dn.8xlarge"
+    }
+    elseif ($machinetype -EQ 4) {
+        $machinetype = "g4dn.12xlarge"
+    }
+    elseif ($machinetype -EQ 5) {
+        $machinetype = "g5.2xlarge"
+    }
+    elseif ($machinetype -EQ 6) {
+        $machinetype = "g5.4xlarge"
+    }
+    elseif ($machinetype -EQ 7) {
+        $machinetype = "g5.8xlarge"
+    }
+    elseif ($machinetype -EQ 8) {
+        $machinetype = "g5.12xlarge"
+    }
+    elseif ($machinetype -EQ 9) {
+        $machinetype = read-host "Write a valid instance type."
+    }
+    else {
+        Write-Output "Invalid Choice"
+        exit
+    }
+
+    $date = Get-Date -Format yyyy-MM-dd
+
+    $global:price = aws ec2 describe-spot-price-history --instance-types $machinetype --product-description Linux/UNIX --start-time $date
+
+    Write-Output "Latest price available:"
+
+    ($price | ConvertFrom-Json).SpotPriceHistory[0]
 
 }
 
@@ -172,34 +183,8 @@ function Start-AWSTraining {
 
 }
 
-do {
-    set-runEnvVariables
+#Main script
 
-    $hyperparameters = get-content custom-files/hyperparameters.json | ConvertFrom-Json
-    $model_metadata = get-content custom-files/model_metadata.json | ConvertFrom-Json
-    Show-Menu
+set-runEnvVariables
 
-    $selection = Read-Host "Pick a menu item (0-17):"
-    switch ($selection) {
-        '1' {
-            Write-Output "View Network ACLs Ip"
-            .\get-IPaccess.ps1
-        }
-        '2' {
-            Write-Output "View Security Groups IP"
-            .\get-IPaccess.ps1
-        }
-        '3' {
-            Write-Output "Add IP access"
-            .\add-remove-access.ps1
-        }
-        '4' {
-            Write-Output "Remove IP access"
-            .\add-remove-access.ps1
-        }
-        '5' {
-            Start-AWSTraining
-        }
-    }
-}
-until ($selection -eq '0')
+Show-Menu

@@ -65,7 +65,11 @@ aws s3 cp .\custom-files\ s3://$BUCKET/$CUSTOM_FILE_LOCATION/ --recursive
 pause
 
 aws cloudformation deploy --stack-name $stackName --parameter-overrides InstanceType=$instanceTypeConfig ResourcesStackName=$baseResourcesStackName TimeToLiveInMinutes=$timeToLiveInMinutes AmiId=$amiId BUCKET=$BUCKET CUSTOMFILELOCATION=$CUSTOM_FILE_LOCATION --template-file $templateFile --capabilities CAPABILITY_IAM --s3-bucket $BUCKET --force-upload
-write-output "finished cloudformation deploy"
+
+if ($LASTEXITCODE -ne 0){
+    Write-Output "Deploy failed."
+    Exit 1
+}
 
 pause
 
@@ -76,7 +80,7 @@ $EC2_ID = ($ec2_id  | ConvertFrom-Json).autoscalinggroups.instances.instanceid
 
 
 if ($EC2Type -eq "spot"){
-    $EC2_IP= (aws ec2 describe-instances --instance-ids ${EC2_ID}) #  --query 'Reservations[].Instances[].PublicIpAddress[]' --output text)
+    $EC2_IP= (aws ec2 describe-instances --instance-ids ${EC2_ID})
     $EC2_IP = ($EC2_IP | ConvertFrom-Json).reservations.instances.publicipaddress
     }
 else {
@@ -89,4 +93,3 @@ Write-Output "Logs will upload every 2 minutes to https://s3.console.aws.amazon.
 Write-Output "Training should start shortly on $($EC2_IP):8080"
 Write-Output "Once started, you should also be able to monitor training progress through $($EC2_IP):8100/menu.html"
 pause
-$selection = 0
